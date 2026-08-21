@@ -1,0 +1,16 @@
+# Raw replication data belongs to the authors / AEA — never committed
+data/raw/*
+!data/raw/.gitkeep
+
+# Derived data
+data/processed/*
+!data/processed/.gitkeep
+
+# R
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# OS
+.DS_Store
