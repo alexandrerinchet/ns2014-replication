@@ -15,14 +15,26 @@ Format for each entry:
 
 ---
 
-### 2026-08-__ — Setting up
+### 2026-08-22 — Reading Section II: the instruments
 
-**Problem.** —
-**Diagnosis.** —
-**Fix.** —
-**AI use.** —
+NS2014 use two distinct instruments:
 
----
+1. *Baseline* — national military procurement interacted with state dummies.
+   State-specific sensitivities are estimated in the first stage, not imposed.
+   Table 1 lists the most sensitive states (CA, CT, ...).
+2. *Bartik (shift-share)* — national spending scaled by each state's average
+   military spending relative to state output over the first five years of the
+   sample. The weight is fixed ex ante rather than estimated.
+
+The two work as a built-in robustness check: if both give similar estimates, the
+result doesn't hinge on how the variation was constructed.
+
+Likely explains the `_bi` suffix in the data files. Plan: baseline instrument
+first (`statefiscal.dta`), Bartik in 03_robustness.R.
+
+**AI use.** Worked through the Section II identification argument with AI
+assistance; specifics checked against the paper text.
+
 
 ## Open questions
 
@@ -31,6 +43,7 @@ Format for each entry:
 - [ ] How are the instrument and exposure measure constructed, precisely?
 - [ ] Clustering: by state, by region, or two-way?
 - [ ] Deflator and per-capita normalisation choices
+- [ ] Confirm that `_bi` = Bartik instrument (check the ReadMe or the .do files)
 
 ## Discrepancies vs. the paper
 
