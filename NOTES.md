@@ -20,7 +20,7 @@ NS2014 use two distinct instruments:
 The two work as a built-in robustness check: if both give similar estimates, the
 result doesn't hinge on how the variation was constructed.
 
-Plan: baseline instrument first (`statefiscal.dta`), Bartik in 03_robustness.R.
+Plan: baseline instrument first (`statefiscal.dta`), Bartik in 02_robustness.R.
 
 **AI use.** Worked through the Section II identification argument with AI
 assistance; specifics checked against the paper text.
@@ -56,18 +56,17 @@ output verified against the Stata log.
 
 ## Discrepancies vs. the paper
 
-**2SLS regression: **
+**2SLS regression:**
 
   1. number of obs = 1989 (same number)
   2. coefficient : 1.42636 (same value in my regression as in the paper)
   3. standard error : 0.36371 in my regression vs 0.35658 --> 2% gap (low),
   attributable to a small-sample correction applied differently by the two
   packages
-  4. R² : 0.3299 (same value as in the paper)
-  5. Root MSE : .04983 (same)
-  6. F-test (1st stage) = 4.96 (4.83 in the paper) (low, mechanically so given 51 instruments)
+  4. Root MSE : .04983 (same)
+  5. F-test (1st stage) = 4.96 (4.83 in the paper) (low, mechanically so given 51 instruments)
 
-Colinearity problems : R excludes Wyoming, Stata excludes 1967 and 2006
+Collinearity problems : R excludes Wyoming, Stata excludes 1967 and 2006
 
 
 
@@ -107,7 +106,7 @@ multiplier exceeds 1. The gap in point estimates is real, though.
 (51 instruments) : same identifying variation, concentrated rather than dispersed —
 so the low baseline F is an artefact of instrument count, not weak identification.
 
+--> matches the paper:
+  Bartik : 2.476869 vs 2.477 here
+  Oil controls : 1.320189 vs 1.320 here
 
-
-*Anything that does not reproduce goes here, with the size of the gap and my best
-explanation. Empty for now.*

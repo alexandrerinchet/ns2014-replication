@@ -20,6 +20,7 @@ m_iv <- feols(
   cluster = ~state
 )
 
+
 m_ols <- feols(Drcapout ~ Drcapspend | state + year, data = d, cluster = ~state)
 summary(m_ols)
 

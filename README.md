@@ -1,6 +1,6 @@
 # Replication: Nakamura & Steinsson (2014) — *Fiscal Stimulus in a Monetary Union*
 
-**Status:** in progress — expected complete August 26, 2026
+**Status:** Complete
 **Author:** Alexandre Rinchet (Mines Paris – PSL)
 
 ---
@@ -19,10 +19,10 @@ and reproduces the headline results with independently written R code.
 ## Scope
 
 **In scope** — the reduced-form empirical results:
-- The 2SLS "open economy relative multiplier" specification
-- First-stage diagnostics and instrument strength
-- Standard errors clustered by state / region
-- Robustness: alternative samples, alternative clustering
+- The 2SLS "open economy relative multiplier" specification (Table II, Row 1, state output)
+- First-stage diagnostics: F statistic and why the conventional threshold does not apply here
+- Standard errors clustered by state
+- Robustness: the paper's Bartik instrument, and state-specific oil-price controls
 
 **Out of scope** — deliberately:
 - The structural New Keynesian open-economy model (Sections III–IV of the paper).
@@ -34,27 +34,24 @@ and reproduces the headline results with independently written R code.
 US states share a single monetary and fiscal authority. Federal military build-ups
 (Vietnam, the Carter–Reagan build-up) hit some states far harder than others for
 reasons of geopolitics rather than local business cycles. Regressing state output
-growth on state military procurement growth — instrumenting the latter with
-national military spending interacted with each state's historical exposure, and
+growth on state military procurement growth — instrumenting the latter with 
+national military spending interacted with state dummies, and
 absorbing anything national with time fixed effects — recovers what the authors call
-the **open economy relative multiplier**, estimated at approximately 1.5.
+the **open economy relative multiplier**, estimated at approximately 1.4.
 
-Because time fixed effects difference out the common monetary and tax response,
-this estimate is *not* the closed-economy aggregate multiplier: it is the effect of
-spending when the central bank does not lean against it.
+Because time fixed effects difference out the common monetary and tax response, 
+this estimate is not the closed-economy aggregate multiplier; the paper's 
+structural sections discuss how the two relate.
 
 ## Repository layout
 
 ```
 data/raw/          # AEA replication files, downloaded (not committed — see below)
-data/processed/    # analysis panel built by 01_build_panel.R
 code/
   00_setup.R       # packages, paths, options
-  01_build_panel.R # raw -> analysis panel
-  02_replicate.R   # main 2SLS specifications, Table 1 equivalents
-  03_robustness.R  # alternative samples and clustering
+  01_replicate.R   # main 2SLS specification (Table II)
+  02_robustness.R  # Bartik instrument and oil-price controls
 output/tables/     # regression output
-output/figures/    # figures
 NOTES.md           # running log: frictions, fixes, AI use, discrepancies
 ```
 
@@ -62,12 +59,11 @@ NOTES.md           # running log: frictions, fixes, AI use, discrepancies
 
 ```r
 source("code/00_setup.R")
-source("code/01_build_panel.R")
-source("code/02_replicate.R")
-source("code/03_robustness.R")
+source("code/01_replicate.R")
+source("code/02_robustness.R")
 ```
 
-Requires R ≥ 4.2 with `fixest`, `data.table`, `haven`, `modelsummary`, `ggplot2`.
+Requires R ≥ 4.2 with `fixest`, `data.table`, `haven`.
 
 ## Data
 
@@ -77,22 +73,58 @@ the AEA. Download the package from openICPSR project 112744 and unzip it into
 
 ## Results
 
-*To be filled in on completion:*
-
-| Quantity | Paper | This replication | Notes |
+| Quantity | Paper (Table II, Row 1) | This replication | Notes |
 |---|---|---|---|
-| Open economy relative multiplier (state, 2SLS) | ~1.5 | — | — |
-| First-stage F | — | — | — |
+| Open economy relative multiplier (state, 2SLS) | 1.42636 | 1.42636 | Exact match |
+| Clustered SE (by state) | 0.35658 | 0.36371 | +2.0%; degrees-of-freedom conventions differ between Stata and `fixest`. Setting `ssc(adj = FALSE, cluster.adj = FALSE)` reproduces the paper's value |
+| Observations | 1,989 | 1,989 | — |
+| Root MSE | 0.04983 | 0.049833 | Match |
+| First-stage F (51 instruments) | 4.828 | 4.959 | Same DoF conventions; Stock–Yogo critical values not tabulated at this instrument count |
+
+### Additional diagnostics
+
+`fixest` reports two tests the paper does not:
+
+- **Wu–Hausman** (p = 0.0008) rejects exogeneity of state military spending,
+  confirming that OLS would have been biased and that instrumenting was necessary.
+- **Sargan** (p = 0.041) marginally rejects the overidentifying restrictions.
+  With 51 instruments and effects likely heterogeneous across states, this test
+  rejects frequently without necessarily invalidating the identification strategy.
 
 ## What replicates and what doesn't
 
-*To be filled in on completion — including anything that does not reproduce, and why.*
+The main result replicates exactly. The 2SLS estimate of the open economy
+relative multiplier is 1.42636, identical to the paper's Table II, Row 1, down to
+the last digit. Sample size (1,989) and Root MSE (0.04983) also match.
+
+Two quantities differ slightly, both for the same reason. The clustered standard
+error is 0.36371 here against 0.35658 in the paper, and the first-stage F is 4.959
+against 4.828. Both gaps come from degrees-of-freedom conventions, which differ
+between Stata's `ivregress` and `fixest`. Disabling both adjustments in `fixest`
+(`ssc(adj = FALSE, cluster.adj = FALSE)`) reproduces the paper's standard error.
+
+
+One implementation detail is worth noting. Stata and `fixest` handle collinearity
+differently — Stata drops two year dummies (1967 and 2006), `fixest` drops one
+interaction term (Wyoming). Both are dropping redundant columns, and neither
+affects the estimate.
+
+## Robustness
+
+Both alternative specifications replicate the paper:
+
+| Specification | Paper | This replication |
+|---|---|---|
+| Bartik instrument | 2.476869 | 2.477 |
+| State-specific oil-price controls | 1.320189 | 1.320 |
+
 
 ## Method note
 
-R code here was written with AI assistance (debugging, syntax, translating Stata
-idioms into `fixest`). Every specification was checked against the paper by hand,
-and every non-trivial fix is logged in [`NOTES.md`](NOTES.md).
+R code here was written with substantial AI assistance, including translating the
+authors' Stata specifications into `fixest` syntax. Every estimate was checked by
+hand against the authors' original Stata log files, and discrepancies are
+documented in [`NOTES.md`](NOTES.md).
 
 ## License
 
