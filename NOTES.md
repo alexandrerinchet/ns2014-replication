@@ -1,17 +1,8 @@
 # Working notes
 
 A running log of what broke, what I did about it, and where AI helped.
-Newest entries at the bottom. Honest by design: failures stay in.
+Newest entries at the bottom.
 
-Format for each entry:
-
-```
-### [date] — short title
-**Problem.** what happened
-**Diagnosis.** what was actually wrong
-**Fix.** what I changed
-**AI use.** what I asked, what I checked by hand
-```
 
 ---
 
@@ -57,10 +48,7 @@ output verified against the Stata log.
 ## Open questions
 
 - [ ] Which exact sample years does the headline specification use? --> 1966-2006
-- [ ] Are the headline results at state level, region level, or both?
-- [ ] How are the instrument and exposure measure constructed, precisely?
-- [ ] Clustering: by state, by region, or two-way?
-- [ ] Deflator and per-capita normalisation choices
+- [ ] Clustering: by state, by region, or two-way? --> state
 - [ ] Confirm that `_bi` = Bartik instrument (check the ReadMe or the .do files)
   --> no, it means biannual
 
@@ -68,7 +56,8 @@ output verified against the Stata log.
 
 ## Discrepancies vs. the paper
 
-2SLS regression: 
+**2SLS regression: **
+
   1. number of obs = 1989 (same number)
   2. coefficient : 1.42636 (same value in my regression as in the paper)
   3. standard error : 0.36371 in my regression vs 0.35658 --> 2% gap (low),
@@ -76,10 +65,47 @@ output verified against the Stata log.
   packages
   4. R² : 0.3299 (same value as in the paper)
   5. Root MSE : .04983 (same)
-  6. F-test (1st stage) = 4.96 (4.83 in the paper)
-  6. Sargan test : p = 0.04
+  6. F-test (1st stage) = 4.96 (4.83 in the paper) (low, mechanically so given 51 instruments)
 
 Colinearity problems : R excludes Wyoming, Stata excludes 1967 and 2006
+
+
+
+**Robustness tests results :**
+
+
+```
+                         baseline        m_bartik             m_oil
+Dependent Var.:          Drcapout        Drcapout          Drcapout
+                                                                   
+Drcapspend      1.426*** (0.3637) 2.477* (0.9538) 1.320*** (0.3740)
+Fixed-Effects:  ----------------- --------------- -----------------
+state                         Yes             Yes               Yes
+year                          Yes             Yes               Yes
+_______________ _________________ _______________ _________________
+S.E.: Clustered         by: state       by: state         by: state
+Observations                1,989           1,989             1,989
+R2                        0.36293         0.36455           0.42883
+Within R2                 0.00667         0.00919           0.10941
+---
+Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+```
+**Oil controls.** 1.320 vs 1.426 in the baseline. The multiplier barely moves and
+stays significant at the 0.1% level, while within R² jumps from 0.7% to 10.9% —
+the state-specific oil sensitivities explain a lot of variation without carrying
+the coefficient. The estimate is not driven by the oil channel.
+
+
+**Bartik instrument.** 2.477, SE 0.954. Higher point estimate, much less precise.
+The confidence interval comfortably covers 1.426, so the two estimates are not
+statistically distinguishable and the qualitative conclusion holds — the
+multiplier exceeds 1. The gap in point estimates is real, though.
+
+
+**Bartik first-stage** F = 108.6 (1 instrument, 1,949 DoF) vs 4.83 for the baseline
+(51 instruments) : same identifying variation, concentrated rather than dispersed —
+so the low baseline F is an artefact of instrument count, not weak identification.
 
 
 

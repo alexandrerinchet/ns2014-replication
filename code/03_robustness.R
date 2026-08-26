@@ -1,56 +1,38 @@
-# 03_robustness.R ------------------------------------------------------------
-# One or two robustness checks, understood and defensible. Not a fishing trip.
-#
-# Pick the ones you can explain in a sentence each. Three good checks beat
-# fifteen you cannot defend.
+# A few robustness checks
 
 source(file.path("code", "00_setup.R"))
+library(haven); library(data.table); library(fixest)
 
-panel <- readRDS(file.path(PATH_PROCESSED, "panel.rds"))
+d <- as.data.table(read_dta(file.path(PATH_RAW, "DataPrograms", "for-regressions",
+                                      "statefiscal.dta")))
 
+# Baseline, for reference (Table II, Row 1, State Output)
 baseline <- feols(
-  y_growth ~ 1 | state + year | g_shock ~ z_instr,
-  data = panel, cluster = ~state
+  Drcapout ~ 1 | state + year | Drcapspend ~ i(state, Drcapspend_nat),
+  data = d, cluster = ~state
 )
 
-## A. Clustering -------------------------------------------------------------
-# Does inference depend on how errors are grouped? The point estimate should not
-# move at all — only the standard errors.
+## A. Bartik instrument ------------------------------------------------------
+# The paper's alternative instrument: national spending scaled by each state's
+# average military share over 1966-1971 (fracmil2), rather than letting the
+# first stage estimate state-specific sensitivities. One instrument instead of
+# 51, so the first-stage F is interpretable in the conventional sense.
 
-r_cluster_region <- summary(baseline, cluster = ~region)
-r_cluster_twoway <- summary(baseline, cluster = ~ state + year)
-
-## B. Sample period ----------------------------------------------------------
-# Is the result driven by one build-up? Drop the Vietnam years, then the
-# Carter-Reagan years, and see what survives.
-
-r_no_vietnam <- feols(
-  y_growth ~ 1 | state + year | g_shock ~ z_instr,
-  data = panel[!(year %in% 1966:1972)], cluster = ~state
+m_bartik <- feols(
+  Drcapout ~ 1 | state + year | Drcapspend ~ Dpredict_spend2,
+  data = d, cluster = ~state
 )
 
-## C. Influential states -----------------------------------------------------
-# Military procurement is concentrated. Does one state carry the estimate?
-# Leave-one-out over the largest recipients.
+## B. Oil prices -------------------------------------------------------------
+# Time fixed effects absorb the oil price as a national shock, but not the fact
+# that states respond to it differently. Adding state-specific oil sensitivities
+# tests whether the multiplier survives that channel.
 
-loo <- rbindlist(lapply(
-  # FILL IN: the handful of largest procurement states, e.g. c("CA", "CT", "WA")
-  character(0),
-  function(s) {
-    m <- feols(
-      y_growth ~ 1 | state + year | g_shock ~ z_instr,
-      data = panel[state != s], cluster = ~state
-    )
-    data.table(dropped = s, estimate = coef(m)["fit_g_shock"], se = se(m)["fit_g_shock"])
-  }
-))
+m_oil <- feols(
+  Drcapout ~ i(state, Doilprice) | state + year | Drcapspend ~ i(state, Drcapspend_nat),
+  data = d, cluster = ~state
+)
 
 ## Collect -------------------------------------------------------------------
 
-etable(
-  baseline, r_no_vietnam,
-  file = file.path(PATH_TABLES, "robustness.tex"),
-  replace = TRUE
-)
-
-print(loo)
+etable(baseline, m_bartik, m_oil, keep = "Drcapspend")
