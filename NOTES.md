@@ -40,11 +40,14 @@ assistance; specifics checked against the paper text.
 
 **Problem.** The standard errors I obtain differ from those reported in the
 paper (0.36371 vs 0.35658 respectively)
+
 **Diagnosis.** Maybe due to a small-sample correction applied differently by the
 two packages
+
 **Fix.** I run : summary(m_iv, ssc = ssc(adj = FALSE, cluster.adj = FALSE)).
 This disables both degrees-of-freedom adjustments (the one for the number of
 parameters and the one for the number of clusters)
+
 **Output** Same standard error as in the paper (0.356579)
 
 **AI use.** AI-assisted diagnosis and drafting of the verification command;
@@ -53,7 +56,7 @@ output verified against the Stata log.
 
 ## Open questions
 
-- [ ] Which exact sample years does the headline specification use?--> 1966-2006
+- [ ] Which exact sample years does the headline specification use? --> 1966-2006
 - [ ] Are the headline results at state level, region level, or both?
 - [ ] How are the instrument and exposure measure constructed, precisely?
 - [ ] Clustering: by state, by region, or two-way?
