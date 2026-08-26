@@ -107,6 +107,8 @@ multiplier exceeds 1. The gap in point estimates is real, though.
 so the low baseline F is an artefact of instrument count, not weak identification.
 
 --> matches the paper:
+
   Bartik : 2.476869 vs 2.477 here
+  
   Oil controls : 1.320189 vs 1.320 here
 
