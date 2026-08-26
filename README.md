@@ -19,7 +19,6 @@ and reproduces the headline results with independently written R code.
 ## Scope
 
 **In scope** — the reduced-form empirical results:
-- Construction of the estimation panel (state × year, and region × year)
 - The 2SLS "open economy relative multiplier" specification
 - First-stage diagnostics and instrument strength
 - Standard errors clustered by state / region
@@ -94,14 +93,6 @@ the AEA. Download the package from openICPSR project 112744 and unzip it into
 R code here was written with AI assistance (debugging, syntax, translating Stata
 idioms into `fixest`). Every specification was checked against the paper by hand,
 and every non-trivial fix is logged in [`NOTES.md`](NOTES.md).
-
-## Related work
-
-Pallante (2026, *Journal of Applied Econometrics*) rebuilds and extends the NS2014
-dataset through 2019 using DCADS and USAspending.gov, and reports somewhat smaller
-multipliers in narrow replication, with the estimates sensitive to procurement
-reporting thresholds and to the treatment of foreign military sales. Where relevant,
-that discussion is noted alongside the results below.
 
 ## License
 

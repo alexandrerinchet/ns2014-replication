@@ -1,78 +1,23 @@
-# 02_replicate.R -------------------------------------------------------------
-# The headline result: the open economy relative multiplier.
-#
-# fixest syntax for IV with fixed effects:
-#
-#   feols(y ~ exogenous_controls | fixed_effects | endogenous ~ instrument, data)
-#          ^                       ^                ^
-#          |                       |                └── first stage
-#          |                       └── absorbed
-#          └── second-stage controls (may be empty: use "1")
-#
-# So the paper's baseline is roughly:
-#
-#   feols(y_growth ~ 1 | state + year | g_shock ~ z_instr, cluster = ~state)
+source("code/00_setup.R")
+library(haven); library(data.table); library(fixest)
 
-source(file.path("code", "00_setup.R"))
+d <- as.data.table(read_dta("data/raw/DataPrograms/for-regressions/statefiscal.dta"))
 
-panel <- readRDS(file.path(PATH_PROCESSED, "panel.rds"))
+# Le panel est déjà construit par le preamble Stata des auteurs
+# (Table-II_III-Row-1-preamble_states.do) : échantillon 1966-2006,
+# US/Puerto Rico/Virgin Islands exclus, variables en variation sur 2 ans.
 
-## 1. OLS, for reference -----------------------------------------------------
-# Not the paper's estimate — it is the biased benchmark the IV is there to fix.
-# Worth reporting anyway: the gap between OLS and 2SLS is informative.
-
-m_ols <- feols(
-  y_growth ~ g_shock | state + year,
-  data    = panel,
-  cluster = ~state
-)
-
-## 2. First stage ------------------------------------------------------------
-# Does the instrument actually move procurement? Report the F statistic.
-
-m_first <- feols(
-  g_shock ~ z_instr | state + year,
-  data    = panel,
-  cluster = ~state
-)
-
-## 3. 2SLS — the headline specification --------------------------------------
+# Spécification Table II, ligne 1, colonne "State Output"
+# Stata : ivregress 2sls Drcapout (Drcapspend = i.statenum*Drcapspend_nat)
+#         i.year i.statenum, vce(cl statenum)str(d[, .(state, year, Drcapout, Drcapspend, Drcapspend_nat)])
 
 m_iv <- feols(
-  y_growth ~ 1 | state + year | g_shock ~ z_instr,
-  data    = panel,
+  Drcapout ~ 1 | state + year | Drcapspend ~ i(state, Drcapspend_nat),
+  data    = d,
   cluster = ~state
 )
 
-# The coefficient on g_shock here is the open economy relative multiplier.
-# Target: approximately 1.5.
+m_ols <- feols(Drcapout ~ Drcapspend | state + year, data = d, cluster = ~state)
+summary(m_ols)
 
 summary(m_iv)
-fitstat(m_iv, ~ ivf + ivwald)   # instrument strength diagnostics
-
-## 4. Table ------------------------------------------------------------------
-
-modelsummary(
-  list("OLS" = m_ols, "First stage" = m_first, "2SLS" = m_iv),
-  stars  = TRUE,
-  gof_map = c("nobs", "r.squared"),
-  output = file.path(PATH_TABLES, "table1_multiplier.md")
-)
-
-## 5. Compare to the paper ---------------------------------------------------
-# Fill these in by hand from the published tables, then commit the comparison.
-# If a number does not match, that goes in NOTES.md — it does not get quietly
-# dropped.
-
-comparison <- data.frame(
-  quantity    = c("Relative multiplier (2SLS)", "First-stage F", "N"),
-  paper       = c(NA, NA, NA),          # FILL IN from the AER tables
-  replication = c(
-    coef(m_iv)["fit_g_shock"],
-    fitstat(m_first, "f")$f$stat,
-    nobs(m_iv)
-  )
-)
-
-print(comparison)
-write.csv(comparison, file.path(PATH_TABLES, "comparison.csv"), row.names = FALSE)
